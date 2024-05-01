@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import PostContent from "../../component/post-content";
 import Box from "../../component/box";
 import "./index.css";
@@ -19,9 +19,15 @@ export default function PostItem({ id, username, text, date }) {
   const [isOpen, setOpen] = useState(false);
 
   const handleOpen = () => {
-    if (status === null) getData();
+    //if (status === null) getData();
     setOpen(!isOpen);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      getData();
+    }
+  }, [isOpen]);
 
   const getData = async () => {
     setStatus(LOAD_STATUS.LOADING);

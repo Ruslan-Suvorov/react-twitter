@@ -3,9 +3,10 @@ import Box from "../../component/box";
 import Title from "../../component/title";
 import "./index.css";
 import PostCreate from "../post-create";
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { LOAD_STATUS, Skeleton, Alert, Loader } from "../../component/load";
 import PostItem from "../post-item";
+import { useWindowListener } from "../../util/useWindowListener";
 
 export default function PostList() {
   const [status, setStatus] = useState(null);
@@ -42,10 +43,84 @@ export default function PostList() {
     isEmpty: data.list.length === 0,
   });
 
-  if (status === null) getData();
+  // if (status === null) getData();
+
+  useEffect(() => {
+    getData();
+
+    const intervalId = setInterval(() => getData(), 5000);
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  const [position, setPosition] = useState({ x: 20, y: 20 });
+
+  useWindowListener("pointermove", (e) => {
+    setPosition({ x: e.clientX, y: e.clientY });
+  });
+
+  const [location, setLocalion] = useState(null);
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocalion({ latitude, longitude });
+        },
+        (error) => {
+          console.error("Помилка отримання локації", error.message);
+        }
+      );
+    } else {
+      console.error("Ваш браузер не дозволяє отримати геолокацію.");
+    }
+  }, []);
 
   return (
     <Grid>
+      {location ? (
+        <div
+          style={{
+            position: "absolute",
+            left: 20,
+            top: 0,
+            zIndex: "100000",
+          }}
+        >
+          <p>
+            Location: Lat - {location.latitude} Long - {location.longitude}
+          </p>
+        </div>
+      ) : (
+        <div
+          style={{
+            position: "absolute",
+            left: 20,
+            top: 0,
+            zIndex: "100000",
+          }}
+        >
+          <p>Loading location...</p>
+        </div>
+      )}
+
+      <div
+        style={{
+          position: "absolute",
+          backgroundColor: "yellow",
+          borderRadius: "50%",
+          opacity: 0.4,
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          pointerEvents: "none",
+          left: -20,
+          top: -20,
+          width: 40,
+          height: 40,
+        }}
+      ></div>
+
       <Box>
         <Grid>
           <Title>Home</Title>
