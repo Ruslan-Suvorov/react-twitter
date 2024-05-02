@@ -1,11 +1,5 @@
 import "./index.css";
 
-export const LOAD_STATUS = {
-  LOADING: "loading",
-  SUCCESS: "success",
-  ERROR: "error",
-};
-
 export function Alert({ message, status = "default" }) {
   return <div className={`alert alert--${status}`}>{message}</div>;
 }

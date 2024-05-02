@@ -1,20 +1,23 @@
 import Grid from "../../component/grid";
 import Box from "../../component/box";
 import Title from "../../component/title";
-import "./index.css";
-import PostCreate from "../post-create";
-import { Fragment, useState, useEffect } from "react";
-import { LOAD_STATUS, Skeleton, Alert, Loader } from "../../component/load";
 import PostItem from "../post-item";
+import PostCreate from "../post-create";
+import "./index.css";
+import { Fragment, useState, useEffect, useReducer } from "react";
+import { Skeleton, Alert, Loader } from "../../component/load";
 import { useWindowListener } from "../../util/useWindowListener";
+import {
+  requestReducer,
+  requestInitialState,
+  REQUEST_ACTION_TYPE,
+} from "../../util/request";
 
 export default function PostList() {
-  const [status, setStatus] = useState(null);
-  const [message, setMessage] = useState("");
-  const [data, setData] = useState(null);
+  const [state, dispatch] = useReducer(requestReducer, requestInitialState);
 
   const getData = async () => {
-    setStatus(LOAD_STATUS.LOADING);
+    dispatch({ type: REQUEST_ACTION_TYPE.LOADING });
 
     try {
       const res = await fetch("http://localhost:4000/post-list");
@@ -22,15 +25,21 @@ export default function PostList() {
       const data = await res.json();
 
       if (res.ok) {
-        setData(convertData(data));
-        setStatus(LOAD_STATUS.SUCCESS);
+        dispatch({
+          type: REQUEST_ACTION_TYPE.SUCCESS,
+          payload: convertData(data),
+        });
       } else {
-        setMessage(data.message);
-        setStatus(LOAD_STATUS.ERROR);
+        dispatch({
+          type: REQUEST_ACTION_TYPE.ERROR,
+          payload: data.message,
+        });
       }
     } catch (err) {
-      setMessage(err.message);
-      setStatus(LOAD_STATUS.ERROR);
+      dispatch({
+        type: REQUEST_ACTION_TYPE.ERROR,
+        payload: err.message,
+      });
     }
   };
   const convertData = (data) => ({
@@ -43,15 +52,13 @@ export default function PostList() {
     isEmpty: data.list.length === 0,
   });
 
-  // if (status === null) getData();
-
   useEffect(() => {
     getData();
 
-    const intervalId = setInterval(() => getData(), 5000);
-    return () => {
-      clearInterval(intervalId);
-    };
+    // const intervalId = setInterval(() => getData(), 5000);
+    // return () => {
+    //   clearInterval(intervalId);
+    // };
   }, []);
 
   const [position, setPosition] = useState({ x: 20, y: 20 });
@@ -106,7 +113,7 @@ export default function PostList() {
         </div>
       )}
 
-      <div
+      {/* <div
         style={{
           position: "absolute",
           backgroundColor: "yellow",
@@ -119,7 +126,7 @@ export default function PostList() {
           width: 40,
           height: 40,
         }}
-      ></div>
+      ></div> */}
 
       <Box>
         <Grid>
@@ -131,7 +138,7 @@ export default function PostList() {
           />
         </Grid>
       </Box>
-      {status === LOAD_STATUS.LOADING && (
+      {state.status === REQUEST_ACTION_TYPE.LOADING && (
         <>
           <Box>
             <Skeleton />
@@ -141,16 +148,19 @@ export default function PostList() {
           </Box>
         </>
       )}
-      {status === LOAD_STATUS.ERROR && (
-        <Alert status={status} message={message} />
+      {state.status === REQUEST_ACTION_TYPE.ERROR && (
+        <Alert status={state.status} message={state.message} />
       )}
-      {status === LOAD_STATUS.LOADING && <Loader />}
-      {status === LOAD_STATUS.SUCCESS && (
+      {state.status === REQUEST_ACTION_TYPE.LOADING && <Loader />}
+      {state.status === REQUEST_ACTION_TYPE.SUCCESS && (
         <>
-          {data.isEmpty ? (
-            <Alert status={LOAD_STATUS.SUCCESS} message="No posts yet!" />
+          {state.data.isEmpty ? (
+            <Alert
+              status={REQUEST_ACTION_TYPE.SUCCESS}
+              message="No posts yet!"
+            />
           ) : (
-            data.list.map((post) => (
+            state.data.list.map((post) => (
               <Fragment key={post.id}>
                 <PostItem {...post} />
               </Fragment>

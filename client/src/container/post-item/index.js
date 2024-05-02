@@ -1,52 +1,58 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState, useReducer } from "react";
 import PostContent from "../../component/post-content";
 import Box from "../../component/box";
 import "./index.css";
 import Grid from "../../component/grid";
 import PostCreate from "../post-create";
-import { Alert, LOAD_STATUS, Loader } from "../../component/load";
+import { Alert, Loader } from "../../component/load";
+import {
+  requestReducer,
+  requestInitialState,
+  REQUEST_ACTION_TYPE,
+} from "../../util/request";
 
 export default function PostItem({ id, username, text, date }) {
-  const [data, setData] = useState({
-    id,
-    username,
-    text,
-    date,
-    reply: [],
-  });
-  const [status, setStatus] = useState(null);
-  const [message, setMessage] = useState("");
-  const [isOpen, setOpen] = useState(false);
-
-  const handleOpen = () => {
-    //if (status === null) getData();
-    setOpen(!isOpen);
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      getData();
-    }
-  }, [isOpen]);
+  const [state, dispatch] = useReducer(
+    requestReducer,
+    requestInitialState,
+    (state) => ({
+      ...state,
+      data: {
+        id,
+        username,
+        text,
+        date,
+        reply: [],
+      },
+    })
+  );
 
   const getData = async () => {
-    setStatus(LOAD_STATUS.LOADING);
+    dispatch({ type: REQUEST_ACTION_TYPE.LOADING });
 
     try {
-      const res = await fetch(`http://localhost:4000/post-item?id=${data.id}`);
+      const res = await fetch(
+        `http://localhost:4000/post-item?id=${state.data.id}`
+      );
 
       const resData = await res.json();
 
       if (res.ok) {
-        setData(convertData(resData));
-        setStatus(LOAD_STATUS.SUCCESS);
+        dispatch({
+          type: REQUEST_ACTION_TYPE.SUCCESS,
+          payload: convertData(resData),
+        });
       } else {
-        setMessage(resData.message);
-        setStatus(LOAD_STATUS.ERROR);
+        dispatch({
+          type: REQUEST_ACTION_TYPE.ERROR,
+          payload: resData.message,
+        });
       }
     } catch (err) {
-      setMessage(err.message);
-      setStatus(LOAD_STATUS.ERROR);
+      dispatch({
+        type: REQUEST_ACTION_TYPE.ERROR,
+        payload: err.message,
+      });
     }
   };
 
@@ -64,6 +70,17 @@ export default function PostItem({ id, username, text, date }) {
     isEmpty: post.reply.length === 0,
   });
 
+  const [isOpen, setOpen] = useState(false);
+  const handleOpen = () => {
+    setOpen(!isOpen);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      getData();
+    }
+  }, [isOpen]);
+
   return (
     <Box>
       <div
@@ -73,9 +90,9 @@ export default function PostItem({ id, username, text, date }) {
         onClick={handleOpen}
       >
         <PostContent
-          username={data.username}
-          text={data.text}
-          date={data.date}
+          username={state.data.username}
+          text={state.data.text}
+          date={state.data.date}
         />
       </div>
 
@@ -85,21 +102,22 @@ export default function PostItem({ id, username, text, date }) {
             <PostCreate
               placeholder="Post your reply!"
               button="Reply"
-              id={data.id}
+              id={state.data.id}
               onCreate={getData}
             />
           </Box>
-          {status === LOAD_STATUS.LOADING && (
+          {state.status === REQUEST_ACTION_TYPE.LOADING && (
             <>
-              <Alert status={status} message="Loading..." />
+              <Alert status={state.status} message="Loading..." />
               <Loader />
             </>
           )}
-          {status === LOAD_STATUS.ERROR && (
-            <Alert status={status} message={message} />
+          {state.status === REQUEST_ACTION_TYPE.ERROR && (
+            <Alert status={state.status} message={state.message} />
           )}
-          {data.reply.length !== 0 &&
-            data.reply.map((item) => (
+          {state.status === REQUEST_ACTION_TYPE.SUCCESS &&
+            state.data.reply.length !== 0 &&
+            state.data.reply.map((item) => (
               <Fragment key={item.id}>
                 <Box>
                   <PostContent {...item} />

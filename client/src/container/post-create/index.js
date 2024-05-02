@@ -2,8 +2,13 @@ import "./index.css";
 
 import Grid from "../../component/grid";
 import Field from "../../component/field";
-import { useState } from "react";
-import { Alert, Loader, LOAD_STATUS } from "../../component/load";
+import { useReducer } from "react";
+import { Alert, Loader } from "../../component/load";
+import {
+  requestReducer,
+  requestInitialState,
+  REQUEST_ACTION_TYPE,
+} from "../../util/request";
 
 export default function PostCreate({
   onCreate,
@@ -11,15 +16,14 @@ export default function PostCreate({
   button,
   id = null,
 }) {
-  const [status, setStatus] = useState(null);
-  const [message, setMessage] = useState("");
+  const [state, dispatch] = useReducer(requestReducer, requestInitialState);
 
   const handleSubmit = (value) => {
     return sendData({ value });
   };
 
   const sendData = async (dataToSend) => {
-    setStatus(LOAD_STATUS.LOADING);
+    dispatch({ type: REQUEST_ACTION_TYPE.LOADING });
 
     try {
       const res = await fetch("http://localhost:4000/post-create", {
@@ -33,15 +37,13 @@ export default function PostCreate({
       const data = await res.json();
 
       if (res.ok) {
-        setStatus(LOAD_STATUS.SUCCESS);
+        dispatch({ type: REQUEST_ACTION_TYPE.RESET });
         if (onCreate) onCreate();
       } else {
-        setMessage(data.message);
-        setStatus(LOAD_STATUS.ERROR);
+        dispatch({ type: REQUEST_ACTION_TYPE.ERROR, message: data.message });
       }
     } catch (err) {
-      setMessage(err.message);
-      setStatus(LOAD_STATUS.ERROR);
+      dispatch({ type: REQUEST_ACTION_TYPE.ERROR, message: err.message });
     }
   };
 
@@ -56,15 +58,17 @@ export default function PostCreate({
     <Grid>
       <Field
         placeholder={
-          status === LOAD_STATUS.LOADING ? "Sending..." : placeholder
+          state.status === REQUEST_ACTION_TYPE.LOADING
+            ? "Sending..."
+            : placeholder
         }
         button={button}
         onSubmit={handleSubmit}
       />
-      {status === LOAD_STATUS.ERROR && (
-        <Alert status={status} message={message} />
+      {state.status === REQUEST_ACTION_TYPE.ERROR && (
+        <Alert status={state.status} message={state.message} />
       )}
-      {status === LOAD_STATUS.LOADING && <Loader />}
+      {state.status === REQUEST_ACTION_TYPE.LOADING && <Loader />}
     </Grid>
   );
 }
