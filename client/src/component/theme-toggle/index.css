@@ -1,0 +1,55 @@
+:root {
+  --main-color: #00aeff;
+  --bg: #ccc;
+  --checkbox-bg: transparent;
+  --checkbox-sun: var(--main-color);
+  --checkbox-moon: #000;
+}
+
+:root:has(.theme:checked) {
+  --bg: #242424;
+  --checkbox-bg: #00aeff;
+  --checkbox-sun: #000;
+  --checkbox-moon: var(--main-color);
+}
+
+.theme-custom-checkbox{
+  position: fixed;
+  top: 15px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.container {
+  position: relative;
+  width: 6rem;
+  height: 3rem;
+  background: var(--checkbox-bg);
+  transition: 1.5s;
+  border-radius: 5rem;
+  border: 0.2rem solid #0083c0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  & input {
+    appearance: none;
+    &:checked ~ span {
+      left: calc(100% - 3rem);
+    }
+  }
+  & span {
+    position: absolute;
+    left: 0;
+    width: 3rem;
+    height: 3rem;
+    background: #fff;
+    border: none;
+    border-radius: 3rem;
+    scale: 1.2;
+    transition: 1.5s;
+    box-shadow: 0 0 0.5rem 0 #000;
+  }
+}

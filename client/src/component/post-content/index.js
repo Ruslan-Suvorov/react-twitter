@@ -1,8 +1,9 @@
 import "./index.css";
 import Grid from "../grid";
 import { getDate } from "../../util/getDate";
+import { memo } from "react";
 
-export default function PostContent({ username, text, date }) {
+function PostContent({ username, text, date }) {
   return (
     <Grid>
       <div className="post-content">
@@ -13,3 +14,5 @@ export default function PostContent({ username, text, date }) {
     </Grid>
   );
 }
+
+export default memo(PostContent);

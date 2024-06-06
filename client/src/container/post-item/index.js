@@ -1,9 +1,16 @@
-import { Fragment, useEffect, useState, useReducer } from "react";
+import {
+  Fragment,
+  useEffect,
+  useState,
+  useReducer,
+  useCallback,
+  lazy,
+  memo,
+} from "react";
 import PostContent from "../../component/post-content";
 import Box from "../../component/box";
 import "./index.css";
 import Grid from "../../component/grid";
-import PostCreate from "../post-create";
 import { Alert, Loader } from "../../component/load";
 import {
   requestReducer,
@@ -11,7 +18,9 @@ import {
   REQUEST_ACTION_TYPE,
 } from "../../util/request";
 
-export default function PostItem({ id, username, text, date }) {
+const PostCreate = lazy(() => import("../post-create"));
+
+function PostItem({ id, username, text, date }) {
   const [state, dispatch] = useReducer(
     requestReducer,
     requestInitialState,
@@ -27,7 +36,7 @@ export default function PostItem({ id, username, text, date }) {
     })
   );
 
-  const getData = async () => {
+  const getData = useCallback(async () => {
     dispatch({ type: REQUEST_ACTION_TYPE.LOADING });
 
     try {
@@ -54,7 +63,7 @@ export default function PostItem({ id, username, text, date }) {
         payload: err.message,
       });
     }
-  };
+  }, [state.data.id]);
 
   const convertData = ({ post }) => ({
     id: post.id,
@@ -129,3 +138,7 @@ export default function PostItem({ id, username, text, date }) {
     </Box>
   );
 }
+
+export default memo(PostItem, (prev, next) => {
+  return true;
+});

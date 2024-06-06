@@ -1,10 +1,17 @@
 import Grid from "../../component/grid";
 import Box from "../../component/box";
 import Title from "../../component/title";
-import PostItem from "../post-item";
 import PostCreate from "../post-create";
 import "./index.css";
-import { Fragment, useState, useEffect, useReducer } from "react";
+import {
+  Fragment,
+  useState,
+  useEffect,
+  useReducer,
+  lazy,
+  Suspense,
+  useCallback,
+} from "react";
 import { Skeleton, Alert, Loader } from "../../component/load";
 import { useWindowListener } from "../../util/useWindowListener";
 import {
@@ -13,10 +20,12 @@ import {
   REQUEST_ACTION_TYPE,
 } from "../../util/request";
 
+const PostItem = lazy(() => import("../post-item"));
+
 export default function PostList() {
   const [state, dispatch] = useReducer(requestReducer, requestInitialState);
 
-  const getData = async () => {
+  const getData = useCallback(async () => {
     dispatch({ type: REQUEST_ACTION_TYPE.LOADING });
 
     try {
@@ -41,7 +50,7 @@ export default function PostList() {
         payload: err.message,
       });
     }
-  };
+  }, []);
   const convertData = (data) => ({
     list: data.list.reverse().map(({ id, username, text, date }) => ({
       id,
@@ -162,7 +171,15 @@ export default function PostList() {
           ) : (
             state.data.list.map((post) => (
               <Fragment key={post.id}>
-                <PostItem {...post} />
+                <Suspense
+                  fallback={
+                    <Box>
+                      <Skeleton />
+                    </Box>
+                  }
+                >
+                  <PostItem {...post} />
+                </Suspense>
               </Fragment>
             ))
           )}

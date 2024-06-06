@@ -1,13 +1,8 @@
+import { ThemeContext } from "../../App";
 import "./index.css";
-import { useState } from "react";
+import { useState, memo, useContext } from "react";
 
-export default function Field({
-  onSubmit,
-  placeholder,
-  button,
-  className,
-  style,
-}) {
+function Field({ onSubmit, placeholder, button, className = "", style }) {
   const [value, setValue] = useState("");
   const handleChange = (e) => setValue(e.target.value);
   const handleSubmit = () => {
@@ -23,6 +18,8 @@ export default function Field({
 
   const isDisabled = value.length === 0;
 
+  const theme = useContext(ThemeContext);
+
   return (
     <div className={`field ${className}`} style={style}>
       <textarea
@@ -35,10 +32,12 @@ export default function Field({
       <button
         disabled={isDisabled}
         onClick={handleSubmit}
-        className="field__button"
+        className={`field__button field__button--${theme}`}
       >
         {button}
       </button>
     </div>
   );
 }
+
+export default memo(Field);

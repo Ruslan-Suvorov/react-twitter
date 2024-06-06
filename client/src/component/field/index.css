@@ -12,21 +12,21 @@
 }
 
 .field__button {
-  background-color: #3498db;
+  background-color: #0083c0;
   color: white;
   padding: 12px 16px;
   border-radius: 20px;
-  transition: opacity 0.4s;
+  transition: background-color 0.4s;
   border: none;
 }
 
 .field__button:disabled {
   cursor: default;
-  opacity: 0.7 !important;
+  background-color: #00aeff94;
 }
 
 .field__button:hover {
-  background-color: #2a77aa;
+  background-color: #00aeff;
   cursor: pointer;
 }
 
